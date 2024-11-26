@@ -1,0 +1,74 @@
+#include <Adafruit_LiquidCrystal.h>
+
+Adafruit_LiquidCrystal lcd(0);
+
+char caracteres[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ .<";
+char nome[15] = "";
+int numLetra = 0;
+int pos = 0;
+
+void setup() {
+  pinMode(3, INPUT_PULLUP);
+  pinMode(4, INPUT_PULLUP);
+  lcd.begin(16, 2);
+  lcd.print("Introd. o nome:");
+}
+
+void loop() {
+  if (digitalRead(3) == LOW) {
+    unsigned long tempoPressionado = millis();
+    while (digitalRead(3) == LOW) {
+      if (millis() - tempoPressionado > 2000) {
+        resetarNome();
+        return;
+      }
+    }
+    numLetra = (numLetra + 1) % (sizeof(caracteres) - 1);
+    lcd.setCursor(pos, 1);
+    lcd.print(caracteres[numLetra]);
+    delay(200);
+  }
+
+  if (digitalRead(4) == LOW) {
+    unsigned long tempoPressionado = millis();
+    while (digitalRead(4) == LOW) {
+      if (millis() - tempoPressionado > 2000) {
+        confirmarNome();
+        return;
+      }
+    }
+
+    char c = caracteres[numLetra];
+    if (c == '<' && pos > 0) {
+      pos--;
+      nome[pos] = '\0';
+      lcd.setCursor(pos, 1);
+      lcd.print(" ");
+      lcd.setCursor(pos, 1);
+    } else if (c != '<' && pos < 14) {
+      nome[pos] = c;
+      lcd.setCursor(pos, 1);
+      lcd.print(c);
+      pos++;
+    }
+    delay(200);
+  }
+}
+
+void confirmarNome() {
+  nome[pos] = '\0';
+  lcd.clear();
+  lcd.print("Nome salvo:");
+  lcd.setCursor(0, 1);
+  lcd.print(nome);
+  delay(3000);
+  resetarNome();
+}
+
+void resetarNome() {
+  memset(nome, '\0', sizeof(nome));
+  pos = 0;
+  numLetra = 0;
+  lcd.clear();
+  lcd.print("Introd. o nome:");
+}
